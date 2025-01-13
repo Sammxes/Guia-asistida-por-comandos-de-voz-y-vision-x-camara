@@ -2,7 +2,7 @@
 name: Get help
 about: Ask a question to get help with the OpenAI API
 title: "[SUPPORT]"
-labels: support
+labels: ''
 assignees: ''
 
 ---
