@@ -1,0 +1,73 @@
+import speech_recognition as sr
+from googletrans import Translator
+from gtts import gTTS
+import os
+
+# -------------------------
+# CONFIGURACIÓN
+# -------------------------
+AUDIO_FILE = "audio_input.wav"  # Archivo de audio a traducir
+OUTPUT_FILE = "translated_output.txt"  # Archivo donde se guardará la traducción
+LANG_SOURCE = 'es'  # Idioma de origen (Español)
+LANG_TARGET = 'en'  # Idioma de destino (Inglés)
+
+# -------------------------
+# RECONOCIMIENTO DE VOZ
+# -------------------------
+def recognize_speech(audio_path):
+    r = sr.Recognizer()
+    try:
+        with sr.AudioFile(audio_path) as source:
+            audio = r.record(source)
+            text = r.recognize_google(audio, language=LANG_SOURCE)
+            print(f"[INFO] Texto reconocido: {text}")
+            return text
+    except sr.UnknownValueError:
+        print("[ERROR] No se pudo reconocer el audio.")
+        return None
+    except sr.RequestError as e:
+        print(f"[ERROR] Error al conectar con el servicio de reconocimiento de voz: {e}")
+        return None
+
+# -------------------------
+# TRADUCCIÓN
+# -------------------------
+def translate_text(text, src=LANG_SOURCE, dest=LANG_TARGET):
+    translator = Translator()
+    try:
+        translated = translator.translate(text, src=src, dest=dest)
+        print(f"[INFO] Traducción: {translated.text}")
+        return translated.text
+    except Exception as e:
+        print(f"[ERROR] Error en la traducción: {e}")
+        return None
+
+# -------------------------
+# GUARDAR EN ARCHIVO
+# -------------------------
+def save_translation(text, filename=OUTPUT_FILE):
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(f"[INFO] Traducción guardada en {filename}")
+
+# -------------------------
+# REPRODUCIR TRADUCCIÓN EN VOZ
+# -------------------------
+def speak_text(text, lang=LANG_TARGET):
+    tts = gTTS(text=text, lang=lang)
+    tts.save("temp.mp3")
+    os.system("start temp.mp3")  # Windows; para Mac o Linux usar 'afplay' o 'mpg123'
+
+# -------------------------
+# FLUJO PRINCIPAL
+# -------------------------
+def main():
+    text = recognize_speech(AUDIO_FILE)
+    if text:
+        translated_text = translate_text(text)
+        if translated_text:
+            save_translation(translated_text)
+            speak_text(translated_text)
+
+if __name__ == "__main__":
+    main()
