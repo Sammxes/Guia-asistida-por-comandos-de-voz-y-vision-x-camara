@@ -1,0 +1,50 @@
+import speech_recognition as sr
+from googletrans import Translator
+from gtts import gTTS
+import os
+
+# -------------------------
+# CONFIGURACIÓN
+# -------------------------
+LANG_SOURCE = 'es'  # Idioma de entrada (Español)
+LANG_TARGET = 'en'  # Idioma de salida (Inglés)
+
+# -------------------------
+# RECONOCIMIENTO DE VOZ EN TIEMPO REAL
+# -------------------------
+def listen_and_translate():
+    recognizer = sr.Recognizer()
+    translator = Translator()
+
+    with sr.Microphone() as source:
+        print("[INFO] Ajustando el ruido ambiental...")
+        recognizer.adjust_for_ambient_noise(source)
+        print("[INFO] Habla ahora...")
+
+        try:
+            audio = recognizer.listen(source, timeout=10)
+            text = recognizer.recognize_google(audio, language=LANG_SOURCE)
+            print(f"[ES] Reconocido: {text}")
+
+            translated = translator.translate(text, src=LANG_SOURCE, dest=LANG_TARGET)
+            print(f"[EN] Traducción: {translated.text}")
+
+            # Reproducir traducción
+            tts = gTTS(text=translated.text, lang=LANG_TARGET)
+            tts.save("temp.mp3")
+            os.system("start temp.mp3")  # Windows; Mac/Linux usar 'afplay' o 'mpg123'
+
+        except sr.UnknownValueError:
+            print("[ERROR] No se entendió el audio.")
+        except sr.RequestError as e:
+            print(f"[ERROR] Error de conexión con el servicio de reconocimiento: {e}")
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
+# -------------------------
+# BUCLE PRINCIPAL
+# -------------------------
+if __name__ == "__main__":
+    while True:
+        listen_and_translate()
+        print("\n[INFO] Listo para la siguiente frase...\n")
